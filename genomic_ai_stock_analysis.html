@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genomics & AI Drug Discovery Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Bigger readable font sizes & premium contrast */
+    body {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .badge-bullish {
+      background-color: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .badge-neutral {
+      background-color: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .badge-caution {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    .company-item.active {
+      background-color: #2563eb !important;
+      border-color: #60a5fa !important;
+      box-shadow: 0 4px 16px 0 rgba(37, 99, 235, 0.4);
+    }
+    .company-item.active .item-title,
+    .company-item.active .item-subtitle,
+    .company-item.active .item-price,
+    .company-item.active .item-cat {
+      color: #ffffff !important;
+    }
+    .cat-btn.active {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-color: #3b82f6;
+    }
+    /* Smooth custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #253347;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3b4d66;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen p-3 sm:p-5 flex flex-col">
+
+  <!-- Main 2-Column Split Layout (No distracting top bar) -->
+  <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-[850px]">
+
+    <!-- ==================== LEFT PANEL: SELECTION & FILTERS ==================== -->
+    <aside class="lg:col-span-4 xl:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col shadow-xl">
+      
+      <!-- Panel Header & Branding -->
+      <div class="pb-4 border-b border-slate-800">
+        <div class="flex items-center justify-between mb-1">
+          <span class="px-2.5 py-0.5 text-xs font-bold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+            MIT / QMB Keynote
+          </span>
+          <span class="text-xs text-slate-400 font-semibold">21 Stocks</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">
+          Genomic AI Discovery
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">
+          Search and filter below to inspect stocks on the right window.
+        </p>
+      </div>
+
+      <!-- 1. Search Box -->
+      <div class="pt-4 pb-3">
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Search Directory</label>
+        <div class="relative">
+          <input type="text" id="searchInput" oninput="filterCompanies()" placeholder="Search ticker, name, role..." 
+                 class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 pl-10 text-base text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition shadow-inner">
+          <svg class="w-5 h-5 text-slate-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+
+      <!-- 2. Sector Filter Buttons (On Left Panel) -->
+      <div class="pb-3 border-b border-slate-800">
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Workflow Sectors</label>
+        <div class="grid grid-cols-2 gap-1.5 text-xs font-semibold">
+          <button onclick="setCategoryFilter('all', this)" class="cat-btn active p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 text-left transition truncate">
+            All Sectors (21)
+          </button>
+          <button onclick="setCategoryFilter('cat1', this)" class="cat-btn p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 text-left transition truncate">
+            1. Choline (2)
+          </button>
+          <button onclick="setCategoryFilter('cat2', this)" class="cat-btn p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 text-left transition truncate">
+            2. Glial CNS (3)
+          </button>
+          <button onclick="setCategoryFilter('cat3', this)" class="cat-btn p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 text-left transition truncate">
+            3. Omics (3)
+          </button>
+          <button onclick="setCategoryFilter('cat4', this)" class="cat-btn p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 text-left transition truncate">
+            4. DNA / TWST (4)
+          </button>
+          <button onclick="setCategoryFilter('cat5', this)" class="cat-btn p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 text-left transition truncate">
+            5. AI Drug Design (6)
+          </button>
+          <button onclick="setCategoryFilter('cat6', this)" class="cat-btn p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800 text-left transition truncate col-span-2">
+            6. Commercial Large Pharma (3)
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Left Panel Data Actions & Tools -->
+      <div class="py-3 border-b border-slate-800 flex items-center justify-between gap-1 text-xs">
+        <button onclick="exportJSON()" class="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg transition font-medium flex items-center gap-1" title="Download JSON Database">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Export
+        </button>
+        <label class="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg transition font-medium cursor-pointer flex items-center gap-1" title="Import JSON Database">
+          <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          Import
+          <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importJSON(event)">
+        </label>
+        <button onclick="exportCSV()" class="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg transition font-medium flex items-center gap-1" title="Download CSV Spreadsheet">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          CSV
+        </button>
+        <button onclick="resetData()" class="px-2 py-1.5 text-slate-400 hover:text-red-400 transition text-xs font-medium">
+          Reset
+        </button>
+      </div>
+
+      <!-- 4. Company Selection List (Clickable Items) -->
+      <div id="companyList" class="flex-1 overflow-y-auto space-y-2 pt-3 pr-1 max-h-[520px]">
+
+      <div onclick="selectCompany('BCPC')" 
+           id="item-BCPC"
+           data-ticker="bcpc"
+           data-name="balchem corporation"
+           data-category="choline & medical nutrition"
+           data-catcode="cat1"
+           class="company-item active p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">BCPC</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Balchem Corporation</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Choline & Medical Nutrition</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$167.05</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +0.85%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('DANOY')" 
+           id="item-DANOY"
+           data-ticker="danoy / bn"
+           data-name="danone s.a. (nutricia)"
+           data-category="choline & medical nutrition"
+           data-catcode="cat1"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">DANOY / BN</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">OTC / Euronext</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Danone S.A. (Nutricia)</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Choline & Medical Nutrition</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$14.20</div>
+          <div class="text-xs font-bold text-red-400">
+            -0.20%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('DNLI')" 
+           id="item-DNLI"
+           data-ticker="dnli"
+           data-name="denali therapeutics inc."
+           data-category="glial & lipid cns biotech"
+           data-catcode="cat2"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">DNLI</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Denali Therapeutics Inc.</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Glial & Lipid CNS Biotech</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$20.00</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +1.45%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('ALEC')" 
+           id="item-ALEC"
+           data-ticker="alec"
+           data-name="alector, inc."
+           data-category="glial & lipid cns biotech"
+           data-catcode="cat2"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">ALEC</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Alector, Inc.</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Glial & Lipid CNS Biotech</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$4.55</div>
+          <div class="text-xs font-bold text-red-400">
+            -1.10%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('ALNY')" 
+           id="item-ALNY"
+           data-ticker="alny"
+           data-name="alnylam pharmaceuticals"
+           data-category="glial & lipid cns biotech"
+           data-catcode="cat2"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">ALNY</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Alnylam Pharmaceuticals</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Glial & Lipid CNS Biotech</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$275.50</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +2.10%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('TXG')" 
+           id="item-TXG"
+           data-ticker="txg"
+           data-name="10x genomics, inc."
+           data-category="omics reading & organoids"
+           data-catcode="cat3"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">TXG</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">10x Genomics, Inc.</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Omics Reading & Organoids</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$22.10</div>
+          <div class="text-xs font-bold text-red-400">
+            -0.80%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('ILMN')" 
+           id="item-ILMN"
+           data-ticker="ilmn"
+           data-name="illumina, inc."
+           data-category="omics reading & organoids"
+           data-catcode="cat3"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">ILMN</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Illumina, Inc.</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Omics Reading & Organoids</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$136.50</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +0.40%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('TECH')" 
+           id="item-TECH"
+           data-ticker="tech"
+           data-name="bio-techne corporation"
+           data-category="omics reading & organoids"
+           data-catcode="cat3"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">TECH</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Bio-Techne Corporation</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Omics Reading & Organoids</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$72.80</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +1.20%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('TWST')" 
+           id="item-TWST"
+           data-ticker="twst"
+           data-name="twist bioscience corporation"
+           data-category="dna writing & screening"
+           data-catcode="cat4"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">TWST</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Twist Bioscience Corporation</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">DNA Writing & Screening</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$52.40</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +3.10%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('DHR')" 
+           id="item-DHR"
+           data-ticker="dhr"
+           data-name="danaher corporation (idt)"
+           data-category="dna writing & screening"
+           data-catcode="cat4"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">DHR</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NYSE</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Danaher Corporation (IDT)</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">DNA Writing & Screening</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$272.00</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +0.35%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('GNMSF')" 
+           id="item-GNMSF"
+           data-ticker="gnmsf / 1548"
+           data-name="genscript biotech corporation"
+           data-category="dna writing & screening"
+           data-catcode="cat4"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">GNMSF / 1548</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">HKEX / OTC</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">GenScript Biotech Corporation</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">DNA Writing & Screening</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$1.60</div>
+          <div class="text-xs font-bold text-red-400">
+            -1.80%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('RVTY')" 
+           id="item-RVTY"
+           data-ticker="rvty"
+           data-name="revvity, inc. (dharmacon)"
+           data-category="dna writing & screening"
+           data-catcode="cat4"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">RVTY</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NYSE</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Revvity, Inc. (Dharmacon)</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">DNA Writing & Screening</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$121.50</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +0.60%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('ABSI')" 
+           id="item-ABSI"
+           data-ticker="absi"
+           data-name="absci corporation"
+           data-category="ai drug discovery & biofoundries"
+           data-catcode="cat5"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">ABSI</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Absci Corporation</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">AI Drug Discovery & Biofoundries</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$5.25</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +4.20%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('RXRX')" 
+           id="item-RXRX"
+           data-ticker="rxrx"
+           data-name="recursion pharmaceuticals"
+           data-category="ai drug discovery & biofoundries"
+           data-catcode="cat5"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">RXRX</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Recursion Pharmaceuticals</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">AI Drug Discovery & Biofoundries</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$6.80</div>
+          <div class="text-xs font-bold text-red-400">
+            -0.75%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('SDGR')" 
+           id="item-SDGR"
+           data-ticker="sdgr"
+           data-name="schrödinger, inc."
+           data-category="ai drug discovery & biofoundries"
+           data-catcode="cat5"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">SDGR</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Schrödinger, Inc.</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">AI Drug Discovery & Biofoundries</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$21.80</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +1.10%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('NVDA')" 
+           id="item-NVDA"
+           data-ticker="nvda"
+           data-name="nvidia corporation"
+           data-category="ai drug discovery & biofoundries"
+           data-catcode="cat5"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">NVDA</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">NVIDIA Corporation</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">AI Drug Discovery & Biofoundries</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$122.50</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +1.95%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('GOOGL')" 
+           id="item-GOOGL"
+           data-ticker="googl"
+           data-name="alphabet inc. (deepmind / isomorphic)"
+           data-category="ai drug discovery & biofoundries"
+           data-catcode="cat5"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">GOOGL</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Alphabet Inc. (DeepMind / Isomorphic)</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">AI Drug Discovery & Biofoundries</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$162.50</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +0.85%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('RLAY')" 
+           id="item-RLAY"
+           data-ticker="rlay"
+           data-name="relay therapeutics, inc."
+           data-category="ai drug discovery & biofoundries"
+           data-catcode="cat5"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">RLAY</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Relay Therapeutics, Inc.</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">AI Drug Discovery & Biofoundries</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$7.45</div>
+          <div class="text-xs font-bold text-red-400">
+            -1.30%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('LLY')" 
+           id="item-LLY"
+           data-ticker="lly"
+           data-name="eli lilly and company"
+           data-category="commercial large pharma"
+           data-catcode="cat6"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">LLY</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NYSE</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Eli Lilly and Company</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Commercial Large Pharma</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$915.00</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +0.70%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('BIIB')" 
+           id="item-BIIB"
+           data-ticker="biib"
+           data-name="biogen inc."
+           data-category="commercial large pharma"
+           data-catcode="cat6"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">BIIB</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NASDAQ</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Biogen Inc.</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Commercial Large Pharma</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$194.50</div>
+          <div class="text-xs font-bold text-red-400">
+            -0.60%
+          </div>
+        </div>
+      </div>
+    
+
+      <div onclick="selectCompany('NVO')" 
+           id="item-NVO"
+           data-ticker="nvo"
+           data-name="novo nordisk a/s"
+           data-category="commercial large pharma"
+           data-catcode="cat6"
+           class="company-item  p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="item-title text-lg font-black text-white tracking-wide">NVO</span>
+            <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">NYSE</span>
+          </div>
+          <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">Novo Nordisk A/S</div>
+          <div class="item-cat text-xs text-blue-400 truncate mt-0.5">Commercial Large Pharma</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="item-price text-lg font-black text-white">$128.50</div>
+          <div class="text-xs font-bold text-emerald-400">
+            +0.40%
+          </div>
+        </div>
+      </div>
+    
+      </div>
+
+      <!-- Left Panel Footer -->
+      <div class="pt-3 border-t border-slate-800 text-xs text-slate-400 flex justify-between items-center">
+        <span id="displayedCount">21 of 21 companies</span>
+        <span class="text-blue-400 font-semibold">Select company above</span>
+      </div>
+
+    </aside>
+
+
+    <!-- ==================== RIGHT PANEL: INFORMATION DISPLAY ==================== -->
+    <main class="lg:col-span-8 xl:col-span-8 flex flex-col overflow-y-auto max-h-[880px] pr-1">
+      <div id="detailContainer">
+
+        <!-- Header Profile -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="text-3xl sm:text-4xl font-black text-white tracking-wide">BCPC</span>
+                <span class="text-sm px-3 py-1 rounded-lg bg-blue-500/20 text-blue-300 font-semibold border border-blue-500/30">NASDAQ</span>
+                <span class="badge-bullish text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Bullish Consolidation</span>
+                <span class="text-xs px-2.5 py-1 rounded bg-purple-500/20 text-purple-300 font-medium border border-purple-500/30">Kellis Keynote: 29:44</span>
+              </div>
+              <h2 class="text-2xl font-bold text-slate-100">Balchem Corporation</h2>
+              <p class="text-base text-blue-400 font-semibold mt-1">Choline & Medical Nutrition</p>
+            </div>
+            
+            <div class="text-left sm:text-right bg-slate-950/80 p-4 sm:p-0 rounded-xl sm:bg-transparent">
+              <div class="text-3xl sm:text-4xl font-black text-white">$167.05</div>
+              <div class="text-base font-bold text-emerald-400 mt-0.5">
+                +0.85% (24h)
+              </div>
+              <div class="text-sm text-slate-400 mt-1">Market Cap: <strong class="text-slate-100">$5.32B</strong></div>
+            </div>
+          </div>
+
+          <!-- Keynote Role Banner -->
+          <div class="mt-5 p-4 bg-blue-950/40 border border-blue-900/60 rounded-xl flex items-start gap-3.5">
+            <span class="text-2xl mt-0.5">🧬</span>
+            <div class="text-base text-slate-200 leading-relaxed">
+              <strong class="text-blue-300 font-bold">Keynote Workflow Role:</strong> Global supplier of human choline (VitaCholine®) for astrocyte lipid regulation & resilience
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Metric Highlight Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">52-Week Range</div>
+            <div class="text-lg font-extrabold text-white mt-1.5">$128.50 - $174.20</div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Valuation Metric</div>
+            <div class="text-lg font-extrabold text-white mt-1.5">Fwd P/E 32.4x</div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Revenue / YoY</div>
+            <div class="text-lg font-extrabold text-white mt-1.5">$975M <span class="text-emerald-400 text-sm font-normal">(+5.8%)</span></div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cash Runway</div>
+            <div class="text-lg font-extrabold text-emerald-400 mt-1.5">Self-funding / FCF Positive</div>
+          </div>
+        </div>
+
+        <!-- FA & TA Deep-Dive Blocks -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+          
+          <!-- Fundamental Analysis (FA) -->
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-lg font-extrabold text-emerald-400 flex items-center gap-2 uppercase tracking-wide">
+                <span>📊</span> Fundamental Analysis (FA)
+              </h3>
+              <span class="text-sm font-semibold text-slate-300">Analyst: <strong class="text-emerald-400">Moderate Buy</strong></span>
+            </div>
+            
+            <div class="space-y-3 text-base text-slate-200 leading-relaxed">
+              <p><strong class="text-white">Business Moat:</strong> Near-monopoly in patent-protected human-grade choline salts and microencapsulated nutrient delivery systems. Essential supplier for ongoing neuro-resilience trials.</p>
+              
+              <div class="grid grid-cols-2 gap-3 text-sm pt-2 border-t border-slate-800">
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Cash Reserves: <strong class="text-white block mt-0.5">$115M</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Total Debt: <strong class="text-white block mt-0.5">$280M</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Gross Margin: <strong class="text-white block mt-0.5">34.2%</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Free Cash Flow: <strong class="text-white block mt-0.5">$145M</strong></div>
+              </div>
+              
+              <div class="pt-2 flex items-center justify-between bg-emerald-950/30 p-3 rounded-xl border border-emerald-900/50">
+                <span class="text-sm text-slate-300">Consensus 12M Target:</span>
+                <span class="text-base font-extrabold text-emerald-400">$182.00 (+8.9%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Analysis (TA) -->
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-lg font-extrabold text-cyan-400 flex items-center gap-2 uppercase tracking-wide">
+                <span>📈</span> Technical Analysis (TA)
+              </h3>
+              <span class="text-sm font-semibold text-slate-300">RSI(14): <strong class="text-cyan-400">54</strong></span>
+            </div>
+
+            <div class="space-y-3 text-base text-slate-200 leading-relaxed">
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">50-Day SMA: <strong class="text-white block mt-0.5">$164.20</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">200-Day SMA: <strong class="text-white block mt-0.5">$154.80</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Key Support: <strong class="text-emerald-300 block mt-0.5">$158.00 - $162.00</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Key Resistance: <strong class="text-red-300 block mt-0.5">$172.00 - $175.00</strong></div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <strong class="text-cyan-300 font-bold block mb-1">Actionable Trade / Investment Setup:</strong>
+                <p class="text-sm text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800">Accumulate on pullbacks into the $160 - $162 support corridor. Set stop-loss below $152.00. First target: $178.00, secondary target: $188.00+.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Catalysts & Risks -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm">
+            <h4 class="text-base font-extrabold text-amber-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <span>⚡</span> Imminent Catalysts & Milestones
+            </h4>
+            <ul class="text-sm text-slate-200 space-y-2">
+              <li class='flex items-start gap-2'><span class='text-amber-400 font-bold'>•</span><span>Q3 Earnings Release (Early Nov)</span></li><li class='flex items-start gap-2'><span class='text-amber-400 font-bold'>•</span><span>Clinical data readouts on VitaCholine in cognitive efficiency & memory</span></li><li class='flex items-start gap-2'><span class='text-amber-400 font-bold'>•</span><span>Expansion in pharmaceutical specialty delivery solutions</span></li>
+            </ul>
+          </div>
+
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm">
+            <h4 class="text-base font-extrabold text-red-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <span>⚠️</span> Key Investment Risks
+            </h4>
+            <ul class="text-sm text-slate-200 space-y-2">
+              <li class='flex items-start gap-2'><span class='text-red-400 font-bold'>•</span><span>Raw material input cost inflation in chemical precursor feeds</span></li><li class='flex items-start gap-2'><span class='text-red-400 font-bold'>•</span><span>Commodity cyclicality in animal nutrition segment</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Right Side Footer Toolbar -->
+        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-wrap justify-between items-center gap-3">
+          <span class="text-sm text-slate-400">Selected Stock: <strong class="text-white">BCPC</strong></span>
+          <button onclick="openEditModalForCurrent('BCPC')" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition shadow flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            Edit & Update BCPC Metrics
+          </button>
+        </div>
+    
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ==================== EDIT / UPDATE MODAL ==================== -->
+  <div id="editModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <span>Edit Stock Data:</span>
+          <span id="modalStockTicker" class="text-blue-400">TICKER</span>
+        </h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+      </div>
+
+      <form id="editStockForm" onsubmit="saveStockEdit(event)" class="space-y-4 text-sm">
+        <input type="hidden" id="editStockId">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Price ($)</label>
+            <input type="number" step="0.01" id="editPrice" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">24h Change (%)</label>
+            <input type="text" id="editChange" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Market Cap</label>
+            <input type="text" id="editMarketCap" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">RSI (14-Day)</label>
+            <input type="number" id="editRSI" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">50-Day SMA</label>
+            <input type="text" id="editSMA50" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">200-Day SMA</label>
+            <input type="text" id="editSMA200" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Support Range</label>
+            <input type="text" id="editSupport" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Resistance Range</label>
+            <input type="text" id="editResistance" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Trend Status</label>
+          <input type="text" id="editTrendStatus" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Actionable Technical Setup</label>
+          <textarea id="editSetup" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Cash Runway / Financial Health</label>
+          <input type="text" id="editCashRunway" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Next Upcoming Catalyst</label>
+          <input type="text" id="editCatalyst" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow">Save Updates</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_STOCKS = [{"id": "BCPC", "ticker": "BCPC", "name": "Balchem Corporation", "exchange": "NASDAQ", "category": "Choline & Medical Nutrition", "categoryCode": "cat1", "keynoteRole": "Global supplier of human choline (VitaCholine\u00ae) for astrocyte lipid regulation & resilience", "keynoteTimestamp": "29:44", "price": 167.05, "change24h": "+0.85%", "marketCap": "$5.32B", "marketCapNum": 5.32, "ev": "$5.58B", "range52w": "$128.50 - $174.20", "peTrailing": "42.1x", "peForward": "32.4x", "psRatio": "5.45x", "revenueTTM": "$975M", "revenueGrowthYoY": "+5.8%", "grossMargin": "34.2%", "operatingMargin": "18.5%", "cashEquiv": "$115M", "totalDebt": "$280M", "freeCashFlow": "$145M", "cashRunway": "Self-funding / FCF Positive", "rsi14": 54, "sma50": "$164.20", "sma200": "$154.80", "macd": "Mild Bullish", "trendStatus": "Bullish Consolidation", "badgeClass": "badge-bullish", "supportLevel": "$158.00 - $162.00", "resistanceLevel": "$172.00 - $175.00", "actionableSetup": "Accumulate on pullbacks into the $160 - $162 support corridor. Set stop-loss below $152.00. First target: $178.00, secondary target: $188.00+.", "fundamentalMoat": "Near-monopoly in patent-protected human-grade choline salts and microencapsulated nutrient delivery systems. Essential supplier for ongoing neuro-resilience trials.", "catalysts": ["Q3 Earnings Release (Early Nov)", "Clinical data readouts on VitaCholine in cognitive efficiency & memory", "Expansion in pharmaceutical specialty delivery solutions"], "keyRisks": ["Raw material input cost inflation in chemical precursor feeds", "Commodity cyclicality in animal nutrition segment"], "analystRating": "Moderate Buy", "targetPrice": "$182.00 (+8.9%)"}, {"id": "DANOY", "ticker": "DANOY / BN", "name": "Danone S.A. (Nutricia)", "exchange": "OTC / Euronext", "category": "Choline & Medical Nutrition", "categoryCode": "cat1", "keynoteRole": "Owner of Nutricia; manufactures Souvenaid (choline, uridine, DHA/EPA for early Alzheimer's)", "keynoteTimestamp": "29:44", "price": 14.2, "change24h": "-0.20%", "marketCap": "$44.5B", "marketCapNum": 44.5, "ev": "$54.2B", "range52w": "$11.80 - $14.95", "peTrailing": "18.2x", "peForward": "15.8x", "psRatio": "1.45x", "revenueTTM": "$30.8B", "revenueGrowthYoY": "+4.1%", "grossMargin": "48.5%", "operatingMargin": "13.2%", "cashEquiv": "$2.4B", "totalDebt": "$12.1B", "freeCashFlow": "$2.8B", "cashRunway": "Self-funding / FCF Positive", "rsi14": 51, "sma50": "$13.90", "sma200": "$13.25", "macd": "Neutral", "trendStatus": "Stable Base / Income", "badgeClass": "badge-neutral", "supportLevel": "$13.40 - $13.70", "resistanceLevel": "$14.80 - $15.20", "actionableSetup": "Low-beta defensive income play. Accumulate near support at $13.50 with a 3.5% dividend yield. Target: $16.00.", "fundamentalMoat": "Global medical nutrition distribution network and clinical backing for Fortasyn Connect.", "catalysts": ["Q3 Operational Sales Report (Late Oct)", "Global medical guidelines updates on dietary early-stage cognitive intervention", "Margin expansion in high-tier Specialised Nutrition"], "keyRisks": ["European consumer spending softness", "Currency translation headwind (EUR/USD)"], "analystRating": "Buy", "targetPrice": "$16.50 (+16.2%)"}, {"id": "DNLI", "ticker": "DNLI", "name": "Denali Therapeutics Inc.", "exchange": "NASDAQ", "category": "Glial & Lipid CNS Biotech", "categoryCode": "cat2", "keynoteRole": "Blood-brain barrier Transport Vehicle (TV) targeting glial lipid accumulation & lysosomal enzyme delivery", "keynoteTimestamp": "29:44 / 32:00", "price": 20.0, "change24h": "+1.45%", "marketCap": "$3.18B", "marketCapNum": 3.18, "ev": "$2.15B", "range52w": "$15.50 - $26.80", "peTrailing": "N/A (Clinical)", "peForward": "N/A", "psRatio": "18.5x", "revenueTTM": "$172M", "revenueGrowthYoY": "+12.4%", "grossMargin": "N/A", "operatingMargin": "-115%", "cashEquiv": "$1.03B", "totalDebt": "$45M", "freeCashFlow": "-$380M/yr", "cashRunway": "~2.8 Years (Strong)", "rsi14": 58, "sma50": "$19.40", "sma200": "$21.10", "macd": "Bullish Cross", "trendStatus": "Reversal Base Formation", "badgeClass": "badge-bullish", "supportLevel": "$17.80 - $18.50", "resistanceLevel": "$23.50 - $24.80", "actionableSetup": "Rounded bottom accumulation setup. Entry at $19.20 - $20.00; stop-loss $16.90; target 1: $24.50, target 2: $29.00.", "fundamentalMoat": "Proprietary Transferrin Receptor (TfR) Transport Vehicle delivering large biologics across intact blood-brain barrier.", "catalysts": ["BLA filing progress for DNL310 (Hunter syndrome)", "Phase 2 readout for DNL343 in ALS", "Preclinical pipeline updates on glial lipid clearance vehicles"], "keyRisks": ["Clinical trial delays or safety signals in central CNS delivery", "High ongoing research and clinical cash burn"], "analystRating": "Strong Buy", "targetPrice": "$34.00 (+70.0%)"}, {"id": "ALEC", "ticker": "ALEC", "name": "Alector, Inc.", "exchange": "NASDAQ", "category": "Glial & Lipid CNS Biotech", "categoryCode": "cat2", "keynoteRole": "Immuno-neurology pioneer developing antibodies that activate microglia & astrocytes to clear neurotoxicity", "keynoteTimestamp": "29:44", "price": 4.55, "change24h": "-1.10%", "marketCap": "$430M", "marketCapNum": 0.43, "ev": "$180M", "range52w": "$3.85 - $8.40", "peTrailing": "N/A", "peForward": "N/A", "psRatio": "4.2x", "revenueTTM": "$102M", "revenueGrowthYoY": "-15.0%", "grossMargin": "N/A", "operatingMargin": "-120%", "cashEquiv": "$450M", "totalDebt": "$20M", "freeCashFlow": "-$150M/yr", "cashRunway": "~3.0 Years", "rsi14": 42, "sma50": "$4.80", "sma200": "$5.65", "macd": "Neutral", "trendStatus": "Bottom Basing / Oversold", "badgeClass": "badge-caution", "supportLevel": "$3.80 - $4.10", "resistanceLevel": "$5.80 - $6.20", "actionableSetup": "Speculative high-beta turnaround. Scale in between $4.10 - $4.50 with tight stop under $3.70; breakout target $6.50+.", "fundamentalMoat": "Proprietary platform modulating inhibitory immune receptors (TREM2, CD33, progranulin) on brain immune cells.", "catalysts": ["Phase 3 INFRONT-3 trial completion for Latozinemab (FTD-GRN) with GSK", "AL002 Phase 2 INVOKE-2 Alzheimer's biomarker data", "Milestone payments from GSK partnership"], "keyRisks": ["Clinical binary risk on Phase 3 FTD readout", "Dependence on partner execution (GSK / AbbVie)"], "analystRating": "Hold / Spec Buy", "targetPrice": "$8.00 (+75.8%)"}, {"id": "ALNY", "ticker": "ALNY", "name": "Alnylam Pharmaceuticals", "exchange": "NASDAQ", "category": "Glial & Lipid CNS Biotech", "categoryCode": "cat2", "keynoteRole": "RNAi gene silencing entering CNS to suppress pathogenic APOE and toxic glial lipid regulation pathways", "keynoteTimestamp": "29:44 / 32:00", "price": 275.5, "change24h": "+2.10%", "marketCap": "$36.1B", "marketCapNum": 36.1, "ev": "$36.5B", "range52w": "$141.00 - $289.00", "peTrailing": "N/A", "peForward": "45.0x", "psRatio": "18.2x", "revenueTTM": "$1.98B", "revenueGrowthYoY": "+34.5%", "grossMargin": "83.5%", "operatingMargin": "-12.5%", "cashEquiv": "$2.6B", "totalDebt": "$2.1B", "freeCashFlow": "$120M", "cashRunway": "Self-sustaining / Approaching GAAP Profit", "rsi14": 65, "sma50": "$264.00", "sma200": "$208.50", "macd": "Strong Bullish", "trendStatus": "Major Bullish Breakout", "badgeClass": "badge-bullish", "supportLevel": "$255.00 - $265.00", "resistanceLevel": "$290.00 - $305.00", "actionableSetup": "Trend-following buy on dips to rising 20-day EMA ($268 - $272); stop-loss below $250.00; long-term target $325+.", "fundamentalMoat": "Patented siRNA delivery conjugates (GalNAc and C16 CNS platform) with 5 approved commercial blockbusters.", "catalysts": ["HELIOS-B supplemental NDA approval in ATTR-CM", "Phase 1/2 ALN-APP Alzheimer's trial progression with Regeneron", "Transition into sustained GAAP profitability in FY25/26"], "keyRisks": ["Commercial competition from Pfizer (tafamidis) and BridgeBio", "Reimbursement negotiations in European markets"], "analystRating": "Strong Buy", "targetPrice": "$315.00 (+14.3%)"}, {"id": "TXG", "ticker": "TXG", "name": "10x Genomics, Inc.", "exchange": "NASDAQ", "category": "Omics Reading & Organoids", "categoryCode": "cat3", "keynoteRole": "Single-cell droplet RNA-seq (Chromium) & in-situ spatial transcriptomics (Xenium) that generated the 2.4M-cell atlas", "keynoteTimestamp": "29:44", "price": 22.1, "change24h": "-0.80%", "marketCap": "$2.65B", "marketCapNum": 2.65, "ev": "$2.28B", "range52w": "$16.20 - $57.50", "peTrailing": "N/A", "peForward": "N/A", "psRatio": "4.25x", "revenueTTM": "$624M", "revenueGrowthYoY": "-1.5%", "grossMargin": "67.5%", "operatingMargin": "-32.0%", "cashEquiv": "$370M", "totalDebt": "$95M", "freeCashFlow": "-$65M/yr", "cashRunway": "~4.5 Years", "rsi14": 46, "sma50": "$21.80", "sma200": "$31.50", "macd": "Consolidating", "trendStatus": "Cyclical Bottom Testing", "badgeClass": "badge-neutral", "supportLevel": "$18.50 - $20.00", "resistanceLevel": "$27.50 - $31.00", "actionableSetup": "Deep-value mean-reversion setup. Build baseline position around $20 - $22; stop-loss $17.50; target 1: $28, target 2: $36.", "fundamentalMoat": "Enormous academic literature moat (>8,000 peer-reviewed papers) and dominant single-cell market share.", "catalysts": ["Q3 Consumables revenue stabilization data", "Xenium 5,000-plex spatial panel commercial adoption", "Resolution of IP litigation against NanoString / Bruker"], "keyRisks": ["NIH and academic research funding budget headwinds", "Competitive encroachment from Curio Bioscience and spatial alternatives"], "analystRating": "Moderate Buy", "targetPrice": "$32.00 (+44.8%)"}, {"id": "ILMN", "ticker": "ILMN", "name": "Illumina, Inc.", "exchange": "NASDAQ", "category": "Omics Reading & Organoids", "categoryCode": "cat3", "keynoteRole": "Global standard for high-throughput NGS; sequences all single-cell cDNA libraries from large brain cohorts", "keynoteTimestamp": "29:44", "price": 136.5, "change24h": "+0.40%", "marketCap": "$21.7B", "marketCapNum": 21.7, "ev": "$23.5B", "range52w": "$89.00 - $148.00", "peTrailing": "N/A", "peForward": "28.5x", "psRatio": "4.85x", "revenueTTM": "$4.48B", "revenueGrowthYoY": "-1.8%", "grossMargin": "66.8%", "operatingMargin": "19.5% (adj)", "cashEquiv": "$1.2B", "totalDebt": "$2.8B", "freeCashFlow": "$680M", "cashRunway": "Self-funding / FCF Positive", "rsi14": 57, "sma50": "$128.50", "sma200": "$124.00", "macd": "Bullish", "trendStatus": "Base Breakout Attempt", "badgeClass": "badge-bullish", "supportLevel": "$124.00 - $128.00", "resistanceLevel": "$145.00 - $152.00", "actionableSetup": "Reclaiming the 200-day SMA. Buy on shallow pullbacks to $130 - $133; stop-loss $120.00; breakout target $165+.", "fundamentalMoat": "Vast global installed base (>24,000 sequencing instruments) generating predictable, high-margin consumable flow.", "catalysts": ["NovaSeq X adoption acceleration in population genomics", "Post-Grail spin-off margin expansion clarity", "Cost-per-genome reduction to $100 expanding sequencing volume"], "keyRisks": ["Ultima Genomics and Element Biosciences competitive price pressure", "Geopolitical export curbs on high-end sequencers to China"], "analystRating": "Moderate Buy", "targetPrice": "$160.00 (+17.2%)"}, {"id": "TECH", "ticker": "TECH", "name": "Bio-Techne Corporation", "exchange": "NASDAQ", "category": "Omics Reading & Organoids", "categoryCode": "cat3", "keynoteRole": "Supplies patient-derived organoid extracellular matrices (Cultrex BME) & spatial RNAscope for in-situ validation", "keynoteTimestamp": "59:50", "price": 72.8, "change24h": "+1.20%", "marketCap": "$11.4B", "marketCapNum": 11.4, "ev": "$12.1B", "range52w": "$55.20 - $82.50", "peTrailing": "45.0x", "peForward": "32.0x", "psRatio": "9.8x", "revenueTTM": "$1.16B", "revenueGrowthYoY": "+4.2%", "grossMargin": "71.5%", "operatingMargin": "26.8%", "cashEquiv": "$185M", "totalDebt": "$890M", "freeCashFlow": "$295M", "cashRunway": "Self-funding / FCF Positive", "rsi14": 55, "sma50": "$71.00", "sma200": "$70.80", "macd": "Mild Bullish", "trendStatus": "Ascending Recovery Base", "badgeClass": "badge-bullish", "supportLevel": "$68.00 - $70.50", "resistanceLevel": "$78.00 - $82.00", "actionableSetup": "High-margin life-sciences tools compounder. Buy between $70 - $72 with stop-loss at $66; price target $88.00.", "fundamentalMoat": "Premium biological catalog of recombinant proteins, cytokines, antibodies, and standard RNAscope in-situ assays.", "catalysts": ["Q1 FY25 earnings readout (Nov)", "Expansion in GMP-grade cell and gene therapy reagents", "Rising biopharma demand for 3D organoid disease models"], "keyRisks": ["Biotech venture capital funding cycle duration", "Integration risks in spatial biology acquisitions"], "analystRating": "Buy", "targetPrice": "$86.00 (+18.1%)"}, {"id": "TWST", "ticker": "TWST", "name": "Twist Bioscience Corporation", "exchange": "NASDAQ", "category": "DNA Writing & Screening", "categoryCode": "cat4", "keynoteRole": "Silicon-based DNA synthesis printing high-density oligo pools for MPRAs & custom CRISPR libraries", "keynoteTimestamp": "General Keynote / MPRA", "price": 52.4, "change24h": "+3.10%", "marketCap": "$3.15B", "marketCapNum": 3.15, "ev": "$3.02B", "range52w": "$25.00 - $61.80", "peTrailing": "N/A", "peForward": "N/A", "psRatio": "10.2x", "revenueTTM": "$310M", "revenueGrowthYoY": "+27.8%", "grossMargin": "44.5% (rising)", "operatingMargin": "-35.0%", "cashEquiv": "$280M", "totalDebt": "$145M", "freeCashFlow": "-$40M/yr", "cashRunway": "~4.0 Years (Approaching Breakeven)", "rsi14": 62, "sma50": "$48.20", "sma200": "$39.50", "macd": "Strong Bullish", "trendStatus": "Strong Upward Momentum", "badgeClass": "badge-bullish", "supportLevel": "$46.00 - $48.50", "resistanceLevel": "$60.00 - $64.00", "actionableSetup": "Leading momentum growth setup. Accumulate on pullbacks into the $48 - $51 zone; stop-loss $44.00; price target $68+.", "fundamentalMoat": "Silicon platform writes up to 1,000,000 oligos per chip at 99.8% lower chemical reaction volume than competitors.", "catalysts": ["Factory of the Future margin inflection toward 50%+ gross margin", "Express Genes volume surge driven by AI drug design teams", "Biopharma antibody discovery licensing agreements"], "keyRisks": ["Cash burn prior to sustained operating cash flow positive milestone", "Short seller reports and valuation multiple sensitivity"], "analystRating": "Strong Buy", "targetPrice": "$65.00 (+24.0%)"}, {"id": "DHR", "ticker": "DHR", "name": "Danaher Corporation (IDT)", "exchange": "NYSE", "category": "DNA Writing & Screening", "categoryCode": "cat4", "keynoteRole": "Owns Integrated DNA Technologies (IDT), premier custom oligo & CRISPR sgRNA synthesis provider", "keynoteTimestamp": "General Keynote / Validation", "price": 272.0, "change24h": "+0.35%", "marketCap": "$197.5B", "marketCapNum": 197.5, "ev": "$212.0B", "range52w": "$195.00 - $282.00", "peTrailing": "38.5x", "peForward": "29.2x", "psRatio": "8.3x", "revenueTTM": "$23.8B", "revenueGrowthYoY": "+3.2%", "grossMargin": "59.8%", "operatingMargin": "28.5%", "cashEquiv": "$2.2B", "totalDebt": "$16.8B", "freeCashFlow": "$6.2B", "cashRunway": "Self-funding / Fortress Balance Sheet", "rsi14": 56, "sma50": "$266.00", "sma200": "$250.00", "macd": "Bullish", "trendStatus": "High-Quality Upward Trend", "badgeClass": "badge-bullish", "supportLevel": "$258.00 - $264.00", "resistanceLevel": "$280.00 - $288.00", "actionableSetup": "Blue-chip foundational holding. Buy in the $262 - $268 corridor; stop-loss $248.00; price target $305+.", "fundamentalMoat": "Danaher Business System (DBS), oligopoly in bioprocessing (Cytiva) and custom functional oligo synthesis (IDT).", "catalysts": ["End of customer bioprocessing inventory destocking cycle", "Synergies from Aldevron plasmid/mRNA manufacturing scale", "Continued high-margin bolt-on M&A execution"], "keyRisks": ["Slower-than-expected recovery in early-stage biotech R&D budgets", "Interest rate sensitivity on large acquisitions"], "analystRating": "Strong Buy", "targetPrice": "$300.00 (+10.3%)"}, {"id": "GNMSF", "ticker": "GNMSF / 1548", "name": "GenScript Biotech Corporation", "exchange": "HKEX / OTC", "category": "DNA Writing & Screening", "categoryCode": "cat4", "keynoteRole": "World's largest provider of custom gene cloning, mutant libraries & recombinant protein synthesis", "keynoteTimestamp": "General Keynote / Validation", "price": 1.6, "change24h": "-1.80%", "marketCap": "$3.45B", "marketCapNum": 3.45, "ev": "$2.85B", "range52w": "$1.15 - $2.75", "peTrailing": "N/A", "peForward": "18.5x", "psRatio": "4.1x", "revenueTTM": "$840M", "revenueGrowthYoY": "+34.0%", "grossMargin": "52.0%", "operatingMargin": "-12.0%", "cashEquiv": "$1.1B", "totalDebt": "$240M", "freeCashFlow": "-$80M", "cashRunway": "~8.0 Years", "rsi14": 44, "sma50": "$1.62", "sma200": "$1.85", "macd": "Neutral", "trendStatus": "Geopolitical Discount Basing", "badgeClass": "badge-neutral", "supportLevel": "$1.30 - $1.45", "resistanceLevel": "$1.95 - $2.20", "actionableSetup": "Deep-value geopolitical turnaround play. Small starter position at $1.45 - $1.60; stop-loss $1.20; target $2.40.", "fundamentalMoat": "Cost leadership in long gene synthesis and high-volume biological variant generation; parent of Legend Biotech.", "catalysts": ["Carvykti (cilta-cel) commercial sales ramp via Legend Biotech", "US BIOSECURE Act legislative clarity or carve-outs", "Potential spin-off or restructuring of Western life-science assets"], "keyRisks": ["US regulatory/legislative restrictions on Chinese biotech suppliers", "Geopolitical trade friction"], "analystRating": "Moderate Buy", "targetPrice": "$2.50 (+56.3%)"}, {"id": "RVTY", "ticker": "RVTY", "name": "Revvity, Inc. (Dharmacon)", "exchange": "NYSE", "category": "DNA Writing & Screening", "categoryCode": "cat4", "keynoteRole": "Owns Dharmacon & Horizon Discovery, dominant providers of whole-genome CRISPR libraries & cell models", "keynoteTimestamp": "General Keynote / Validation", "price": 121.5, "change24h": "+0.60%", "marketCap": "$14.9B", "marketCapNum": 14.9, "ev": "$17.8B", "range52w": "$82.00 - $126.50", "peTrailing": "48.0x", "peForward": "24.5x", "psRatio": "5.4x", "revenueTTM": "$2.75B", "revenueGrowthYoY": "+2.8%", "grossMargin": "61.2%", "operatingMargin": "27.5% (adj)", "cashEquiv": "$1.4B", "totalDebt": "$4.3B", "freeCashFlow": "$580M", "cashRunway": "Self-funding / FCF Positive", "rsi14": 59, "sma50": "$116.80", "sma200": "$107.50", "macd": "Bullish", "trendStatus": "Cup & Handle Continuation", "badgeClass": "badge-bullish", "supportLevel": "$112.00 - $116.00", "resistanceLevel": "$126.00 - $132.00", "actionableSetup": "Breakout continuation setup. Buy on retest of $116 - $119; stop-loss $109.00; upside price target $138+.", "fundamentalMoat": "High-margin consumables in translational multi-omics, high-content cellular screening, and CRISPR arrays.", "catalysts": ["Q3 Earnings and guidance update (Late Oct)", "Recovery in pharma discovery consumable spend", "Expansion of automated cellular imaging platforms"], "keyRisks": ["Debt servicing following corporate portfolio overhaul", "Cyclical delays in large automated equipment purchases"], "analystRating": "Buy", "targetPrice": "$135.00 (+11.1%)"}, {"id": "ABSI", "ticker": "ABSI", "name": "Absci Corporation", "exchange": "NASDAQ", "category": "AI Drug Discovery & Biofoundries", "categoryCode": "cat5", "keynoteRole": "Generative AI for de novo antibody creation paired directly with high-throughput wet-lab printing", "keynoteTimestamp": "54:15 - 66:00", "price": 5.25, "change24h": "+4.20%", "marketCap": "$555M", "marketCapNum": 0.55, "ev": "$440M", "range52w": "$1.55 - $7.15", "peTrailing": "N/A", "peForward": "N/A", "psRatio": "38.0x", "revenueTTM": "$14.5M", "revenueGrowthYoY": "+85.0%", "grossMargin": "N/A", "operatingMargin": "-450%", "cashEquiv": "$145M", "totalDebt": "$30M", "freeCashFlow": "-$75M/yr", "cashRunway": "~2.0 Years", "rsi14": 58, "sma50": "$4.75", "sma200": "$4.10", "macd": "Bullish", "trendStatus": "High-Beta Growth Base", "badgeClass": "badge-bullish", "supportLevel": "$4.40 - $4.80", "resistanceLevel": "$6.50 - $7.20", "actionableSetup": "Speculative AI biology pure-play. Enter on pullbacks between $4.60 - $5.00; stop-loss $3.90; target $8.50+.", "fundamentalMoat": "Proprietary generative AI models trained on billions of physical antibody-antigen interaction measurements.", "catalysts": ["IND filing for lead internal de novo antibody candidate (ABS-101)", "Milestone updates on AstraZeneca & Merck partnerships", "Demonstration of zero-shot de novo affinity at major AI conferences"], "keyRisks": ["High valuation multiple on early commercial revenue", "Need for eventual dilutive capital raise in 2026 if milestones lag"], "analystRating": "Strong Buy", "targetPrice": "$9.00 (+71.4%)"}, {"id": "RXRX", "ticker": "RXRX", "name": "Recursion Pharmaceuticals", "exchange": "NASDAQ", "category": "AI Drug Discovery & Biofoundries", "categoryCode": "cat5", "keynoteRole": "Automated phenomics & neural networks matching disease states to molecules that reverse phenotypes", "keynoteTimestamp": "14:15 / 54:00", "price": 6.8, "change24h": "-0.75%", "marketCap": "$2.15B", "marketCapNum": 2.15, "ev": "$1.75B", "range52w": "$5.35 - $16.40", "peTrailing": "N/A", "peForward": "N/A", "psRatio": "38.5x", "revenueTTM": "$56M", "revenueGrowthYoY": "+18.2%", "grossMargin": "N/A", "operatingMargin": "-600%", "cashEquiv": "$450M", "totalDebt": "$48M", "freeCashFlow": "-$280M/yr", "cashRunway": "~1.8 Years", "rsi14": 47, "sma50": "$6.95", "sma200": "$8.40", "macd": "Neutral", "trendStatus": "Range-Bound Consolidation", "badgeClass": "badge-neutral", "supportLevel": "$5.80 - $6.30", "resistanceLevel": "$8.50 - $9.80", "actionableSetup": "Range-trading setup. Accumulate near lower boundary ($6.00 - $6.40); stop-loss $5.40; target 1: $8.50, target 2: $11.00.", "fundamentalMoat": "World's largest proprietary biological image dataset (>50 petabytes) and automated high-throughput wet labs.", "catalysts": ["Phase 2 clinical readouts in CCM and NF2", "Integration synergies with Exscientia acquisition", "Deepening joint commercial roadmap with NVIDIA (BioNeMo)"], "keyRisks": ["Substantial cash burn requiring careful balance sheet management", "Lack of Phase 3 clinical proof-of-concept to date"], "analystRating": "Moderate Buy", "targetPrice": "$11.00 (+61.8%)"}, {"id": "SDGR", "ticker": "SDGR", "name": "Schr\u00f6dinger, Inc.", "exchange": "NASDAQ", "category": "AI Drug Discovery & Biofoundries", "categoryCode": "cat5", "keynoteRole": "Physics-based molecular dynamics (FEP+) & ML predicting binding affinity and preventing toxicity", "keynoteTimestamp": "66:16", "price": 21.8, "change24h": "+1.10%", "marketCap": "$1.62B", "marketCapNum": 1.62, "ev": "$1.28B", "range52w": "$17.80 - $34.50", "peTrailing": "N/A", "peForward": "N/A", "psRatio": "7.5x", "revenueTTM": "$216M", "revenueGrowthYoY": "+8.4%", "grossMargin": "58.2%", "operatingMargin": "-75%", "cashEquiv": "$430M", "totalDebt": "$85M", "freeCashFlow": "-$110M/yr", "cashRunway": "~3.8 Years", "rsi14": 49, "sma50": "$21.20", "sma200": "$24.80", "macd": "Consolidating", "trendStatus": "Multi-Year Floor Testing", "badgeClass": "badge-neutral", "supportLevel": "$18.50 - $20.20", "resistanceLevel": "$25.00 - $28.00", "actionableSetup": "Low-risk entry at the lower boundary of historical valuation. Buy at $20.50 - $21.80; stop-loss $17.90; target $28.00.", "fundamentalMoat": "Software monopoly in rigorous Free Energy Perturbation (FEP+) simulation licensed by top 20 pharma.", "catalysts": ["Phase 1 data for SGR-1505 (MALT1 inhibitor)", "Enterprise software ARR growth acceleration", "Co-development milestone payments from Bristol Myers Squibb"], "keyRisks": ["Software contract renewal lumpiness", "Higher R&D spend on wholly owned internal clinical pipeline"], "analystRating": "Buy", "targetPrice": "$30.00 (+37.6%)"}, {"id": "NVDA", "ticker": "NVDA", "name": "NVIDIA Corporation", "exchange": "NASDAQ", "category": "AI Drug Discovery & Biofoundries", "categoryCode": "cat5", "keynoteRole": "Hardware compute standard & BioNeMo generative AI platform powering structural models & virtual screening", "keynoteTimestamp": "General Keynote / Infrastructure", "price": 122.5, "change24h": "+1.95%", "marketCap": "$3.01T", "marketCapNum": 3010.0, "ev": "$2.98T", "range52w": "$39.20 - $140.70", "peTrailing": "52.0x", "peForward": "34.0x", "psRatio": "28.5x", "revenueTTM": "$96.3B", "revenueGrowthYoY": "+122.0%", "grossMargin": "75.1%", "operatingMargin": "62.0%", "cashEquiv": "$34.8B", "totalDebt": "$10.5B", "freeCashFlow": "$45.0B", "cashRunway": "Self-funding / Infinite", "rsi14": 56, "sma50": "$118.00", "sma200": "$98.50", "macd": "Bullish", "trendStatus": "Post-Split Bull Flag", "badgeClass": "badge-bullish", "supportLevel": "$112.00 - $118.00", "resistanceLevel": "$132.00 - $141.00", "actionableSetup": "Market-leading foundational compounder. Scale in on dips toward $114 - $118; stop-loss $102.00; price target $150+.", "fundamentalMoat": "CUDA software ecosystem lock-in, DGX cloud dominance, and BioNeMo biological generative AI hub.", "catalysts": ["Blackwell B200 volume shipment ramp", "Expansion of sovereign AI and biopharma enterprise contracts", "Launch of specialized healthcare-specific microservices (NIMs)"], "keyRisks": ["Export controls to geopolitical regions", "Hyperscaler Capex digestion period"], "analystRating": "Strong Buy", "targetPrice": "$150.00 (+22.4%)"}, {"id": "GOOGL", "ticker": "GOOGL", "name": "Alphabet Inc. (DeepMind / Isomorphic)", "exchange": "NASDAQ", "category": "AI Drug Discovery & Biofoundries", "categoryCode": "cat5", "keynoteRole": "DeepMind developed AlphaFold 3; Isomorphic Labs commercializes de novo AI drug design with Eli Lilly & Novartis", "keynoteTimestamp": "33:00 / 48:00", "price": 162.5, "change24h": "+0.85%", "marketCap": "$2.02T", "marketCapNum": 2020.0, "ev": "$1.94T", "range52w": "$129.00 - $191.50", "peTrailing": "23.5x", "peForward": "19.8x", "psRatio": "6.2x", "revenueTTM": "$328.0B", "revenueGrowthYoY": "+13.8%", "grossMargin": "57.5%", "operatingMargin": "32.0%", "cashEquiv": "$101.0B", "totalDebt": "$28.5B", "freeCashFlow": "$70.0B", "cashRunway": "Self-funding / Fortress Balance Sheet", "rsi14": 52, "sma50": "$165.00", "sma200": "$158.00", "macd": "Consolidating", "trendStatus": "Base Consolidation", "badgeClass": "badge-bullish", "supportLevel": "$152.00 - $158.00", "resistanceLevel": "$175.00 - $185.00", "actionableSetup": "Attractive mega-cap valuation. Accumulate inside $155 - $162; stop-loss $145.00; price target $195+.", "fundamentalMoat": "AlphaFold 3 biological prediction monopoly, global compute infrastructure, and leading AI research lab.", "catalysts": ["Isomorphic Labs pipeline nomination milestones with Novartis & Lilly", "Google Cloud enterprise AI acceleration", "Search monetization resilience amid generative AI search rollouts"], "keyRisks": ["DOJ antitrust remedies on search exclusivity contracts", "High Capex investments in AI data centers"], "analystRating": "Strong Buy", "targetPrice": "$205.00 (+26.2%)"}, {"id": "RLAY", "ticker": "RLAY", "name": "Relay Therapeutics, Inc.", "exchange": "NASDAQ", "category": "AI Drug Discovery & Biofoundries", "categoryCode": "cat5", "keynoteRole": "Dynamo platform models protein motion & allosteric binding to prevent off-target trial failures (e.g. cardiac toxicity)", "keynoteTimestamp": "66:16", "price": 7.45, "change24h": "-1.30%", "marketCap": "$1.12B", "marketCapNum": 1.12, "ev": "$430M", "range52w": "$5.80 - $12.50", "peTrailing": "N/A", "peForward": "N/A", "psRatio": "28.0x", "revenueTTM": "$38M", "revenueGrowthYoY": "N/A", "grossMargin": "N/A", "operatingMargin": "-350%", "cashEquiv": "$720M", "totalDebt": "$28M", "freeCashFlow": "-$210M/yr", "cashRunway": "~3.4 Years (Strong)", "rsi14": 57, "sma50": "$7.10", "sma200": "$7.35", "macd": "Bullish Cross", "trendStatus": "Post-Data Breakout Base", "badgeClass": "badge-bullish", "supportLevel": "$6.60 - $7.10", "resistanceLevel": "$9.20 - $10.50", "actionableSetup": "Reclaimed the 200-day moving average on heavy volume. Enter at $7.00 - $7.40; stop-loss $6.20; target 1: $10.00, target 2: $12.50.", "fundamentalMoat": "Proprietary motion-based computational chemistry integrating room-temperature X-ray crystallography with MD simulations.", "catalysts": ["Pivotal Phase 2 RLY-2608 (PI3K-alpha) data updates in breast cancer", "Pipeline progression for RLY-5836", "Strategic partnership deals on validated allosteric targets"], "keyRisks": ["Clinical competition in the PI3K inhibitor space", "Trial execution timeline delays"], "analystRating": "Strong Buy", "targetPrice": "$14.00 (+87.9%)"}, {"id": "LLY", "ticker": "LLY", "name": "Eli Lilly and Company", "exchange": "NYSE", "category": "Commercial Large Pharma", "categoryCode": "cat6", "keynoteRole": "Kisunla (donanemab) Alzheimer's leader; partnered with Isomorphic Labs for AI drug discovery", "keynoteTimestamp": "General Keynote / Commercialization", "price": 915.0, "change24h": "+0.70%", "marketCap": "$868.0B", "marketCapNum": 868.0, "ev": "$890.0B", "range52w": "$525.00 - $972.00", "peTrailing": "115.0x", "peForward": "41.5x", "psRatio": "21.5x", "revenueTTM": "$40.4B", "revenueGrowthYoY": "+36.0%", "grossMargin": "81.0%", "operatingMargin": "38.5%", "cashEquiv": "$4.5B", "totalDebt": "$26.0B", "freeCashFlow": "$7.5B", "cashRunway": "Self-funding / Commercial Leader", "rsi14": 53, "sma50": "$905.00", "sma200": "$795.00", "macd": "Consolidating", "trendStatus": "High-Altitude Flag Consolidation", "badgeClass": "badge-bullish", "supportLevel": "$880.00 - $900.00", "resistanceLevel": "$960.00 - $980.00", "actionableSetup": "Institutional cornerstone. Accumulate on pullbacks into $885 - $905 support; stop-loss $840.00; target $1,050+.", "fundamentalMoat": "Dual commercial juggernaut in incretins (tirzepatide) and approved Alzheimer's franchise (donanemab).", "catalysts": ["Global commercial uptake and Medicare coverage ramp for Kisunla", "Oral GLP-1 (orforglipron) Phase 3 registration data", "Pipeline disclosures from Isomorphic Labs AI collaboration"], "keyRisks": ["Manufacturing capacity constraints for injectable delivery pens", "Premium valuation multiple leaves little room for clinical misses"], "analystRating": "Strong Buy", "targetPrice": "$1020.00 (+11.5%)"}, {"id": "BIIB", "ticker": "BIIB", "name": "Biogen Inc.", "exchange": "NASDAQ", "category": "Commercial Large Pharma", "categoryCode": "cat6", "keynoteRole": "Leqembi (lecanemab) commercialization partner with Eisai; established specialized neurology infrastructure", "keynoteTimestamp": "General Keynote / Commercialization", "price": 194.5, "change24h": "-0.60%", "marketCap": "$28.4B", "marketCapNum": 28.4, "ev": "$33.2B", "range52w": "$182.00 - $265.00", "peTrailing": "19.5x", "peForward": "12.8x", "psRatio": "2.95x", "revenueTTM": "$9.65B", "revenueGrowthYoY": "-3.0%", "grossMargin": "74.8%", "operatingMargin": "22.0%", "cashEquiv": "$1.5B", "totalDebt": "$6.3B", "freeCashFlow": "$1.4B", "cashRunway": "Self-funding / FCF Positive", "rsi14": 41, "sma50": "$198.50", "sma200": "$218.00", "macd": "Neutral", "trendStatus": "Deep-Value Bottom Floor", "badgeClass": "badge-neutral", "supportLevel": "$184.00 - $192.00", "resistanceLevel": "$215.00 - $228.00", "actionableSetup": "Contrarian value turnaround setup. Enter around $188 - $194; stop-loss $178.00; initial price target $225+.", "fundamentalMoat": "Decades-long dominance in neurodegenerative commercial channels and Alzheimer's diagnostic infrastructure.", "catalysts": ["Leqembi subcutaneous auto-injector approval decision", "European regulatory approval decisions for Leqembi", "Partner pipeline readouts with Denali (BIIB122 / DNL151 in Parkinson's)"], "keyRisks": ["Continued generic erosion of legacy MS therapies (Tecfidera)", "Slower-than-anticipated commercial infusion ramp"], "analystRating": "Moderate Buy", "targetPrice": "$240.00 (+23.4%)"}, {"id": "NVO", "ticker": "NVO", "name": "Novo Nordisk A/S", "exchange": "NYSE", "category": "Commercial Large Pharma", "categoryCode": "cat6", "keynoteRole": "World leader in metabolic disease exploring next-generation non-incretin thermogenesis & energy expenditure (FTO/IRX3)", "keynoteTimestamp": "10:15 - 14:25", "price": 128.5, "change24h": "+0.40%", "marketCap": "$576.0B", "marketCapNum": 576.0, "ev": "$582.0B", "range52w": "$91.50 - $147.00", "peTrailing": "38.5x", "peForward": "28.0x", "psRatio": "15.2x", "revenueTTM": "$37.8B", "revenueGrowthYoY": "+25.5%", "grossMargin": "84.5%", "operatingMargin": "45.0%", "cashEquiv": "$3.8B", "totalDebt": "$10.2B", "freeCashFlow": "$12.5B", "cashRunway": "Self-funding / FCF Juggernaut", "rsi14": 48, "sma50": "$133.00", "sma200": "$127.50", "macd": "Consolidating", "trendStatus": "Channel Support Consolidation", "badgeClass": "badge-bullish", "supportLevel": "$122.00 - $126.00", "resistanceLevel": "$140.00 - $146.00", "actionableSetup": "Blue-chip growth accumulation. Scale in between $124 - $128; stop-loss $118.00; price target $155+.", "fundamentalMoat": "Dominant global supply chain, unassailable brand trust in diabetes/obesity, and massive clinical pipeline.", "catalysts": ["CagriSema Phase 3 head-to-head readouts against tirzepatide", "Wegovy label expansions in heart failure (HFpEF) and MASH", "Early-stage pipeline data on non-incretin thermogenic fat browning"], "keyRisks": ["Compounding pharmacy supply competition in the US", "Pricing pressure and Medicare drug price negotiations"], "analystRating": "Strong Buy", "targetPrice": "$152.00 (+18.3%)"}];
+    const STORAGE_KEY = 'genomic_ai_stocks_db_v4';
+
+    let stocksData = DEFAULT_STOCKS;
+    let selectedStockId = 'BCPC';
+    let currentCategory = 'all';
+
+    function safeGetStorage(key) {
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          return window.localStorage.getItem(key);
+        }
+      } catch (e) {
+        console.warn("Storage restricted, using in-memory store", e);
+      }
+      return null;
+    }
+
+    function safeSetStorage(key, value) {
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem(key, value);
+        }
+      } catch (e) {}
+    }
+
+    function safeRemoveStorage(key) {
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.removeItem(key);
+        }
+      } catch (e) {}
+    }
+
+    function loadDatabase() {
+      const saved = safeGetStorage(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            stocksData = parsed;
+          }
+        } catch (e) {}
+      }
+    }
+
+    function saveDatabase() {
+      safeSetStorage(STORAGE_KEY, JSON.stringify(stocksData));
+    }
+
+    function resetData() {
+      if (confirm("Reset all stocks to default keynote research data? Any custom edits will be cleared.")) {
+        safeRemoveStorage(STORAGE_KEY);
+        stocksData = DEFAULT_STOCKS;
+        renderCompanyList();
+        renderDetailView(selectedStockId);
+      }
+    }
+
+    function setCategoryFilter(catCode, buttonEl) {
+      currentCategory = catCode;
+      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+      if (buttonEl) buttonEl.classList.add('active');
+      filterCompanies();
+    }
+
+    function filterCompanies() {
+      const listContainer = document.getElementById('companyList');
+      const searchQuery = (document.getElementById('searchInput').value || '').toLowerCase();
+
+      const filtered = stocksData.filter(stock => {
+        const matchesCat = (currentCategory === 'all' || stock.categoryCode === currentCategory);
+        const matchesSearch = stock.ticker.toLowerCase().includes(searchQuery) ||
+                              stock.name.toLowerCase().includes(searchQuery) ||
+                              stock.category.toLowerCase().includes(searchQuery) ||
+                              stock.keynoteRole.toLowerCase().includes(searchQuery);
+        return matchesCat && matchesSearch;
+      });
+
+      document.getElementById('displayedCount').textContent = `${filtered.length} of ${stocksData.length} companies`;
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `
+          <div class="p-6 text-center text-slate-500 text-sm">
+            No companies matching "${searchQuery}".
+          </div>
+        `;
+        return;
+      }
+
+      listContainer.innerHTML = filtered.map(stock => {
+        const isActive = stock.id === selectedStockId;
+        const changeColor = stock.change24h.startsWith('+') ? 'text-emerald-400' : 'text-red-400';
+        return `
+          <div onclick="selectCompany('${stock.id}')" 
+               id="item-${stock.id}"
+               class="company-item ${isActive ? 'active' : ''} p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-850 cursor-pointer transition flex items-center justify-between gap-3 shadow-sm">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="item-title text-lg font-black text-white tracking-wide">${stock.ticker}</span>
+                <span class="item-cat text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold truncate max-w-[130px]">${stock.exchange}</span>
+              </div>
+              <div class="item-subtitle text-sm text-slate-300 truncate mt-0.5 font-medium">${stock.name}</div>
+              <div class="item-cat text-xs text-blue-400 truncate mt-0.5">${stock.category}</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="item-price text-lg font-black text-white">$${Number(stock.price).toFixed(2)}</div>
+              <div class="text-xs font-bold ${changeColor}">
+                ${stock.change24h}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectCompany(stockId) {
+      selectedStockId = stockId;
+      document.querySelectorAll('.company-item').forEach(el => el.classList.remove('active'));
+      const activeEl = document.getElementById('item-' + stockId);
+      if (activeEl) activeEl.classList.add('active');
+      renderDetailView(stockId);
+    }
+
+    function renderDetailView(stockId) {
+      const stock = stocksData.find(s => s.id === stockId) || stocksData[0];
+      if (!stock) return;
+
+      const changeColor = stock.change24h.startsWith('+') ? 'text-emerald-400' : 'text-red-400';
+      const valMetric = (stock.peForward && stock.peForward !== 'N/A') ? `Fwd P/E ${stock.peForward}` : `P/S ${stock.psRatio}`;
+      const catalystsHtml = stock.catalysts.map(c => `<li class="flex items-start gap-2"><span class="text-amber-400 font-bold">•</span><span>${c}</span></li>`).join('');
+      const risksHtml = stock.keyRisks.map(r => `<li class="flex items-start gap-2"><span class="text-red-400 font-bold">•</span><span>${r}</span></li>`).join('');
+
+      const container = document.getElementById('detailContainer');
+      container.innerHTML = `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="text-3xl sm:text-4xl font-black text-white tracking-wide">${stock.ticker}</span>
+                <span class="text-sm px-3 py-1 rounded-lg bg-blue-500/20 text-blue-300 font-semibold border border-blue-500/30">${stock.exchange}</span>
+                <span class="${stock.badgeClass} text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">${stock.trendStatus}</span>
+                <span class="text-xs px-2.5 py-1 rounded bg-purple-500/20 text-purple-300 font-medium border border-purple-500/30">Kellis Keynote: ${stock.keynoteTimestamp}</span>
+              </div>
+              <h2 class="text-2xl font-bold text-slate-100">${stock.name}</h2>
+              <p class="text-base text-blue-400 font-semibold mt-1">${stock.category}</p>
+            </div>
+            
+            <div class="text-left sm:text-right bg-slate-950/80 p-4 sm:p-0 rounded-xl sm:bg-transparent">
+              <div class="text-3xl sm:text-4xl font-black text-white">$${Number(stock.price).toFixed(2)}</div>
+              <div class="text-base font-bold ${changeColor} mt-0.5">
+                ${stock.change24h} (24h)
+              </div>
+              <div class="text-sm text-slate-400 mt-1">Market Cap: <strong class="text-slate-100">${stock.marketCap}</strong></div>
+            </div>
+          </div>
+
+          <div class="mt-5 p-4 bg-blue-950/40 border border-blue-900/60 rounded-xl flex items-start gap-3.5">
+            <span class="text-2xl mt-0.5">🧬</span>
+            <div class="text-base text-slate-200 leading-relaxed">
+              <strong class="text-blue-300 font-bold">Keynote Workflow Role:</strong> ${stock.keynoteRole}
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">52-Week Range</div>
+            <div class="text-lg font-extrabold text-white mt-1.5">${stock.range52w}</div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Valuation Metric</div>
+            <div class="text-lg font-extrabold text-white mt-1.5">${valMetric}</div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Revenue / YoY</div>
+            <div class="text-lg font-extrabold text-white mt-1.5">${stock.revenueTTM} <span class="text-emerald-400 text-sm font-normal">(${stock.revenueGrowthYoY})</span></div>
+          </div>
+          <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cash Runway</div>
+            <div class="text-lg font-extrabold text-emerald-400 mt-1.5">${stock.cashRunway}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-lg font-extrabold text-emerald-400 flex items-center gap-2 uppercase tracking-wide">
+                <span>📊</span> Fundamental Analysis (FA)
+              </h3>
+              <span class="text-sm font-semibold text-slate-300">Analyst: <strong class="text-emerald-400">${stock.analystRating}</strong></span>
+            </div>
+            
+            <div class="space-y-3 text-base text-slate-200 leading-relaxed">
+              <p><strong class="text-white">Business Moat:</strong> ${stock.fundamentalMoat}</p>
+              
+              <div class="grid grid-cols-2 gap-3 text-sm pt-2 border-t border-slate-800">
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Cash Reserves: <strong class="text-white block mt-0.5">${stock.cashEquiv}</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Total Debt: <strong class="text-white block mt-0.5">${stock.totalDebt}</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Gross Margin: <strong class="text-white block mt-0.5">${stock.grossMargin}</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Free Cash Flow: <strong class="text-white block mt-0.5">${stock.freeCashFlow}</strong></div>
+              </div>
+              
+              <div class="pt-2 flex items-center justify-between bg-emerald-950/30 p-3 rounded-xl border border-emerald-900/50">
+                <span class="text-sm text-slate-300">Consensus 12M Target:</span>
+                <span class="text-base font-extrabold text-emerald-400">${stock.targetPrice}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-lg font-extrabold text-cyan-400 flex items-center gap-2 uppercase tracking-wide">
+                <span>📈</span> Technical Analysis (TA)
+              </h3>
+              <span class="text-sm font-semibold text-slate-300">RSI(14): <strong class="text-cyan-400">${stock.rsi14}</strong></span>
+            </div>
+
+            <div class="space-y-3 text-base text-slate-200 leading-relaxed">
+              <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">50-Day SMA: <strong class="text-white block mt-0.5">${stock.sma50}</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">200-Day SMA: <strong class="text-white block mt-0.5">${stock.sma200}</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Key Support: <strong class="text-emerald-300 block mt-0.5">${stock.supportLevel}</strong></div>
+                <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">Key Resistance: <strong class="text-red-300 block mt-0.5">${stock.resistanceLevel}</strong></div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <strong class="text-cyan-300 font-bold block mb-1">Actionable Trade / Investment Setup:</strong>
+                <p class="text-sm text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800">${stock.actionableSetup}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm">
+            <h4 class="text-base font-extrabold text-amber-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <span>⚡</span> Imminent Catalysts & Milestones
+            </h4>
+            <ul class="text-sm text-slate-200 space-y-2">
+              ${catalystsHtml}
+            </ul>
+          </div>
+
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-sm">
+            <h4 class="text-base font-extrabold text-red-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <span>⚠️</span> Key Investment Risks
+            </h4>
+            <ul class="text-sm text-slate-200 space-y-2">
+              ${risksHtml}
+            </ul>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-wrap justify-between items-center gap-3">
+          <span class="text-sm text-slate-400">Selected Stock: <strong class="text-white">${stock['ticker']}</strong></span>
+          <button onclick="openEditModalForCurrent('${stock['id']}')" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition shadow flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            Edit & Update ${stock['ticker']} Metrics
+          </button>
+        </div>
+      `;
+    }
+
+    function openEditModalForCurrent(stockId) {
+      const stock = stocksData.find(s => s.id === stockId);
+      if (!stock) return;
+
+      document.getElementById('editStockId').value = stock.id;
+      document.getElementById('modalStockTicker').textContent = stock.ticker + ' (' + stock.name + ')';
+      document.getElementById('editPrice').value = stock.price;
+      document.getElementById('editChange').value = stock.change24h;
+      document.getElementById('editMarketCap').value = stock.marketCap;
+      document.getElementById('editRSI').value = stock.rsi14;
+      document.getElementById('editSMA50').value = stock.sma50;
+      document.getElementById('editSMA200').value = stock.sma200;
+      document.getElementById('editSupport').value = stock.supportLevel;
+      document.getElementById('editResistance').value = stock.resistanceLevel;
+      document.getElementById('editTrendStatus').value = stock.trendStatus;
+      document.getElementById('editSetup').value = stock.actionableSetup;
+      document.getElementById('editCashRunway').value = stock.cashRunway;
+      document.getElementById('editCatalyst').value = (stock.catalysts && stock.catalysts[0]) ? stock.catalysts[0] : '';
+
+      document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden');
+    }
+
+    function saveStockEdit(event) {
+      event.preventDefault();
+      const stockId = document.getElementById('editStockId').value;
+      const stock = stocksData.find(s => s.id === stockId);
+      if (!stock) return;
+
+      stock.price = parseFloat(document.getElementById('editPrice').value) || stock.price;
+      stock.change24h = document.getElementById('editChange').value || stock.change24h;
+      stock.marketCap = document.getElementById('editMarketCap').value || stock.marketCap;
+      stock.rsi14 = parseInt(document.getElementById('editRSI').value) || stock.rsi14;
+      stock.sma50 = document.getElementById('editSMA50').value || stock.sma50;
+      stock.sma200 = document.getElementById('editSMA200').value || stock.sma200;
+      stock.supportLevel = document.getElementById('editSupport').value || stock.supportLevel;
+      stock.resistanceLevel = document.getElementById('editResistance').value || stock.resistanceLevel;
+      stock.trendStatus = document.getElementById('editTrendStatus').value || stock.trendStatus;
+      stock.actionableSetup = document.getElementById('editSetup').value || stock.actionableSetup;
+      stock.cashRunway = document.getElementById('editCashRunway').value || stock.cashRunway;
+
+      const newCat = document.getElementById('editCatalyst').value;
+      if (newCat) {
+        stock.catalysts[0] = newCat;
+      }
+
+      saveDatabase();
+      closeEditModal();
+      filterCompanies();
+      renderDetailView(stockId);
+      alert(`Updated ${stock.ticker} successfully!`);
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stocksData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `genomic_ai_stocks_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported) && imported.length > 0) {
+            stocksData = imported;
+            saveDatabase();
+            filterCompanies();
+            renderDetailView(selectedStockId);
+            alert("Database imported successfully!");
+          } else {
+            alert("Invalid JSON format. Expected array of stock objects.");
+          }
+        } catch (err) {
+          alert("Error parsing JSON: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function exportCSV() {
+      const headers = ["Ticker", "Company", "Category", "Price", "24h Change", "Market Cap", "P/E Forward", "P/S Ratio", "Revenue TTM", "Rev Growth YoY", "RSI", "SMA50", "SMA200", "Support", "Resistance", "Cash Runway", "Analyst Rating", "Target Price"];
+      const rows = stocksData.map(s => [
+        `"${s.ticker}"`,
+        `"${s.name}"`,
+        `"${s.category}"`,
+        s.price,
+        `"${s.change24h}"`,
+        `"${s.marketCap}"`,
+        `"${s.peForward}"`,
+        `"${s.psRatio}"`,
+        `"${s.revenueTTM}"`,
+        `"${s.revenueGrowthYoY}"`,
+        s.rsi14,
+        `"${s.sma50}"`,
+        `"${s.sma200}"`,
+        `"${s.supportLevel}"`,
+        `"${s.resistanceLevel}"`,
+        `"${s.cashRunway}"`,
+        `"${s.analystRating}"`,
+        `"${s.targetPrice}"`
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", encodeURI(csvContent));
+      downloadAnchor.setAttribute("download", `genomic_ai_stocks_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    try {
+      loadDatabase();
+    } catch (e) {}
+  </script>
+</body>
+</html>
